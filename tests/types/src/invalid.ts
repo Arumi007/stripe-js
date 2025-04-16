@@ -193,7 +193,7 @@ expressCheckoutElement.on('shippingaddresschange', ({address, resolve}) => {
 });
 
 expressCheckoutElement.on('confirm', ({paymentFailed}) => {
-  // @ts-expect-error Can only fail a payment for a reason of 'fail' or 'invalid-shipping-address'
+  // @ts-expect-error Can only fail a payment for a reason of 'fail', 'invalid_shipping_address', 'invalid_billing_address', 'invalid_payment_data', or 'address_unserviceable'
   paymentFailed({reason: 'pizza-time'});
 });
 
@@ -483,3 +483,15 @@ elements.create('paymentMethodMessaging', {
   currency: 'USD',
   paymentMethodOrder: ['invalid_type'],
 });
+
+stripe
+  .initCheckout({
+    // @ts-expect-error Object literal may only specify known properties, and 'clientSecret' does not exist in type 'StripeCheckoutOptions'.
+    clientSecret: 'cs_test_foo',
+  })
+  .then((checkout) => {
+    // @ts-expect-error Property 'createElement' does not exist on type 'StripeCheckout'.
+    checkout.createElement('payment');
+    // @ts-expect-error Type 'StripeCheckoutAmount' is not assignable to type 'number'.
+    const subtotal: number = checkout.session().total.subtotal;
+  });

@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+import {RELEASE_TRAIN} from './shared';
 
-const SCRIPT_SELECTOR = 'script[src^="https://js.stripe.com/v3"]';
+const SCRIPT_SRC = `https://js.stripe.com/${RELEASE_TRAIN}/stripe.js`;
+const SCRIPT_SELECTOR = `script[src^="${SCRIPT_SRC}"]`;
 
 describe('pure module', () => {
   beforeEach(() => {
@@ -43,7 +45,7 @@ describe('pure module', () => {
 
     expect(
       document.querySelector(
-        'script[src^="https://js.stripe.com/v3?advancedFraudSignals=false"]'
+        `script[src^="${SCRIPT_SRC}?advancedFraudSignals=false"]`
       )
     ).not.toBe(null);
   });
@@ -58,7 +60,7 @@ describe('pure module', () => {
 
   test('it should warn when calling loadStripe if a script already exists when parameters are set', () => {
     const script = document.createElement('script');
-    script.src = 'https://js.stripe.com/v3';
+    script.src = SCRIPT_SRC;
     document.body.appendChild(script);
 
     const {loadStripe} = require('./pure');
@@ -76,7 +78,7 @@ describe('pure module', () => {
     loadStripe.setLoadParameters({advancedFraudSignals: true});
 
     const script = document.createElement('script');
-    script.src = 'https://js.stripe.com/v3';
+    script.src = SCRIPT_SRC;
     document.body.appendChild(script);
 
     loadStripe('pk_test_123');
@@ -102,7 +104,7 @@ describe('pure module', () => {
 
   test('it should not warn when a script already exists if parameters are not set', () => {
     const script = document.createElement('script');
-    script.src = 'https://js.stripe.com/v3';
+    script.src = SCRIPT_SRC;
     document.body.appendChild(script);
 
     const {loadStripe} = require('./pure');

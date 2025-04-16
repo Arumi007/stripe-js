@@ -68,6 +68,31 @@ const stripeWithBetas: Stripe = window.Stripe!('pk_123', {
   betas: ['beta_1'],
 });
 
+const stripeWithDeveloperToolsEnabled: Stripe = window.Stripe!('pk_123', {
+  stripeAccount: '123',
+  developerTools: {
+    assistant: {
+      enabled: true,
+    },
+  },
+});
+
+const stripeWithDeveloperToolsDisabled: Stripe = window.Stripe!('pk_123', {
+  stripeAccount: '123',
+  developerTools: {
+    assistant: {
+      enabled: false,
+    },
+  },
+});
+
+const stripeWithDeveloperToolsPartial: Stripe = window.Stripe!('pk_123', {
+  stripeAccount: '123',
+  developerTools: {
+    assistant: {},
+  },
+});
+
 const OPEN_SANS: CssFontSource = {
   cssSrc: 'https://fonts.googleapis.com/css?family=Open+Sans',
 };
@@ -1052,6 +1077,10 @@ expressCheckoutElement.on('confirm', ({paymentFailed, expressPaymentType}) => {
   paymentFailed();
   paymentFailed({});
   paymentFailed({reason: 'invalid_shipping_address'});
+  paymentFailed({reason: 'invalid_billing_address'});
+  paymentFailed({reason: 'invalid_payment_data'});
+  paymentFailed({reason: 'address_unserviceable'});
+  paymentFailed({message: 'Test error message'});
 });
 
 expressCheckoutElement.on(
@@ -3709,3 +3738,31 @@ issuingCopyButtonElement.update({
 stripe.createEphemeralKeyNonce({
   issuingCard: '',
 });
+
+stripe
+  .initCheckout({
+    fetchClientSecret: async () => 'cs_test_foo',
+  })
+  .then(async (checkout) => {
+    const checkoutPaymentElement: StripePaymentElement = checkout.createPaymentElement();
+    checkout.getPaymentElement();
+    const checkoutAddressElement: StripeAddressElement = checkout.createBillingAddressElement();
+    checkout.getBillingAddressElement();
+    checkout.applyPromotionCode('code');
+    const {
+      minorUnitsAmountDivisor,
+      lineItems,
+      total: {
+        taxExclusive: {amount, minorUnitsAmount},
+      },
+    } = checkout.session();
+    const {
+      subtotal: {amount: _, minorUnitsAmount: __},
+    } = lineItems[0];
+    const result = await checkout.confirm();
+    if (result.type === 'success') {
+      const {session} = result;
+    } else {
+      const {error} = result;
+    }
+  });
